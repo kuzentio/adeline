@@ -1,0 +1,29 @@
+version: '3.2'
+
+services:
+  web:
+    env_file:
+      - provision/.env.local
+    volumes:
+      - .:/adeline
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: always
+    stdin_open: true
+    tty: true
+    command: >
+      sh -c "
+        pip install -r requirements/local.txt &&
+        python manage.py migrate &&
+         python manage.py runserver 0.0.0.0:8000
+      "
+  db:
+    restart: always
+    environment:
+      - provision/.env.local
+    ports:
+      - "5000:5432"
+    volumes:
+      - ./provision/db:/docker-entrypoint-initdb.d
+      - postgres-db:/var/lib/postgresql/data
