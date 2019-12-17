@@ -1,0 +1,46 @@
+version: '3.2'
+
+services:
+  web:
+    build: .
+    container_name: adeline_web
+    depends_on:
+      - db
+    env_file:
+      - provision/.env.local
+    volumes:
+      - .:/adeline
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "127.0.0.1:8088:8088"
+    restart: always
+    stdin_open: true
+    tty: true
+    networks:
+      adeline:
+    command: >
+      sh -c "
+        pip install -r requirements/local.txt &&
+         python manage.py runserver 0.0.0.0:8088
+      "
+    environment:
+      - HOST_PWD=${PWD}
+  db:
+    image: postgres:10.1
+    restart: always
+    container_name: adeline_db
+    environment:
+      - provision/.env.local
+    ports:
+      - "5000:5432"
+    volumes:
+      - ./provision/db:/docker-entrypoint-initdb.d
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      adeline:
+
+volumes:
+  postgres-db:
+networks:
+  adeline:
+
